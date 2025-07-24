@@ -1,0 +1,108 @@
+<!-- 4. 勤怠登録画面 (attendance/register.html) -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>勤怠登録 - 勤怠管理システム</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/main">勤怠管理システム</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/main">メイン画面</a>
+                <a class="nav-link" href="/logout">ログアウト</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">勤怠登録</h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <div th:if="${errors}" class="alert alert-danger">
+                            <ul class="mb-0">
+                                <li th:each="error : ${errors}" th:text="${error}">エラーメッセージ</li>
+                            </ul>
+                        </div>
+
+                        <form th:action="@{/attendance/register}" th:object="${attendance}" method="post">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="targetDate" class="form-label">対象日 <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="targetDate" 
+                                           th:field="*{targetDate}" required>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="attendanceType" class="form-label">勤怠区分 <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="attendanceType" th:field="*{attendanceType}" required>
+                                        <option value="">選択してください</option>
+                                        <option value="NORMAL">通常勤務</option>
+                                        <option value="PAID_LEAVE">有給休暇</option>
+                                        <option value="SUBSTITUTE_HOLIDAY">振替休日</option>
+                                        <option value="ABSENT">欠勤</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="startTime" class="form-label">出勤時刻</label>
+                                    <input type="time" class="form-control" id="startTime" th:field="*{startTime}">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="endTime" class="form-label">退勤時刻</label>
+                                    <input type="time" class="form-control" id="endTime" th:field="*{endTime}">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="breakTime" class="form-label">休憩時間（分）</label>
+                                <input type="number" class="form-control" id="breakTime" 
+                                       th:field="*{breakTime}" min="0" value="60">
+                            </div>
+
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <a href="/main" class="btn btn-secondary">キャンセル</a>
+                                <button type="submit" class="btn btn-primary">確認画面へ</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 勤怠区分による項目の制御
+        document.getElementById('attendanceType').addEventListener('change', function() {
+            const startTime = document.getElementById('startTime');
+            const endTime = document.getElementById('endTime');
+            const breakTime = document.getElementById('breakTime');
+            
+            if (this.value === 'PAID_LEAVE' || this.value === 'SUBSTITUTE_HOLIDAY' || this.value === 'ABSENT') {
+                startTime.disabled = true;
+                endTime.disabled = true;
+                breakTime.disabled = true;
+                startTime.value = '';
+                endTime.value = '';
+                breakTime.value = '0';
+            } else {
+                startTime.disabled = false;
+                endTime.disabled = false;
+                breakTime.disabled = false;
+                breakTime.value = '60';
+            }
+        });
+    </script>
+</body>
+</html>
+
