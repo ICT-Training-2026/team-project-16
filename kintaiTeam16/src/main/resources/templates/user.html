@@ -318,7 +318,7 @@
 			<form th:action="@{/user/register}" th:object="${userForm}" method="post">
 				<div class="form-group">
 					<label for="newUserId">ユーザーID：</label>
-					<input type="text" th:field="*{userId}" id="newUserId" placeholder="例：USER001" required>
+					<input type="text" th:field="*{userId}" id="newUserId" placeholder="例：SOUMU" required>
 					<div th:if="${#fields.hasErrors('userId') and targetUser == null}" th:errors="*{userId}"
 						style="color: red; font-size: 0.8rem;"></div>
 				</div>

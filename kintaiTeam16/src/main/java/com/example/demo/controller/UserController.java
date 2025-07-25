@@ -101,6 +101,7 @@ public class UserController {
         
         if (targetUser == null) {
             model.addAttribute("errorMessage", "ユーザーが見つかりません。");
+            model.addAttribute("userForm", new UserForm());
         } else {
             // エンティティからフォームに変換
             UserForm userForm = new UserForm();
@@ -113,7 +114,6 @@ public class UserController {
             model.addAttribute("userForm", userForm);
             model.addAttribute("targetUser", targetUser);
         }
-        
         model.addAttribute("loginUser", loginUser);
         
         return "user";
