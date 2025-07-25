@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<title>勤怠管理システム - ユーザー管理</title>
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			margin: 0;
+			padding: 0;
+			background-color: #f5f5f5;
+		}
+
+		.header {
+			background-color: #007bff;
+			color: white;
+			padding: 1rem;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		.header h1 {
+			margin: 0;
+		}
+
+		.user-info {
+			font-size: 0.9rem;
+		}
+
+		.logout-link {
+			color: white;
+			text-decoration: none;
+			margin-left: 1rem;
+		}
+
+		.container {
+			max-width: 800px;
+			margin: 2rem auto;
+			padding: 0 1rem;
+		}
+
+		.nav-links {
+			margin-bottom: 1rem;
+		}
+
+		.nav-links a {
+			color: #007bff;
+			text-decoration: none;
+			margin-right: 1rem;
+		}
+
+		.nav-links a:hover {
+			text-decoration: underline;
+		}
+
+		.admin-badge {
+			background-color: #28a745;
+			color: white;
+			padding: 0.25rem 0.5rem;
+			border-radius: 4px;
+			font-size: 0.8rem;
+			margin-bottom: 1rem;
+			display: inline-block;
+		}
+
+		.form-container {
+			background-color: white;
+			padding: 2rem;
+			border-radius: 8px;
+			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+			margin-bottom: 2rem;
+		}
+
+		.search-container {
+			background-color: white;
+			padding: 2rem;
+			border-radius: 8px;
+			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+			margin-bottom: 2rem;
+		}
+
+		.form-group {
+			margin-bottom: 1.5rem;
+		}
+
+		label {
+			display: block;
+			margin-bottom: 0.5rem;
+			font-weight: bold;
+			color: #333;
+		}
+
+		input,
+		select {
+			width: 100%;
+			padding: 0.75rem;
+			border: 1px solid #ddd;
+			border-radius: 4px;
+			box-sizing: border-box;
+		}
+
+		.button-group {
+			display: flex;
+			gap: 1rem;
+		}
+
+		button {
+			flex: 1;
+			padding: 0.75rem;
+			border: none;
+			border-radius: 4px;
+			cursor: pointer;
+			font-size: 1rem;
+		}
+
+		.btn-primary {
+			background-color: #007bff;
+			color: white;
+		}
+
+		.btn-warning {
+			background-color: #ffc107;
+			color: #212529;
+		}
+
+		.btn-danger {
+			background-color: #dc3545;
+			color: white;
+		}
+
+		.btn-secondary {
+			background-color: #6c757d;
+			color: white;
+		}
+
+		button:hover {
+			opacity: 0.8;
+		}
+
+		.message {
+			padding: 0.75rem;
+			margin-bottom: 1rem;
+			border-radius: 4px;
+		}
+
+		.success-message {
+			background-color: #d4edda;
+			border: 1px solid #c3e6cb;
+			color: #155724;
+		}
+
+		.error-message {
+			background-color: #f8d7da;
+			border: 1px solid #f5c6cb;
+			color: #721c24;
+		}
+
+		.search-form {
+			display: flex;
+			gap: 1rem;
+			align-items: end;
+		}
+
+		.search-form input {
+			flex: 1;
+		}
+
+		.search-form button {
+			flex: 0 0 auto;
+			padding: 0.75rem 1.5rem;
+		}
+
+		.user-details {
+			background-color: #f8f9fa;
+			padding: 1rem;
+			border-radius: 4px;
+			margin-bottom: 1rem;
+		}
+
+		.detail-row {
+			display: flex;
+			margin-bottom: 0.5rem;
+		}
+
+		.detail-label {
+			font-weight: bold;
+			min-width: 120px;
+			color: #333;
+		}
+
+		.detail-value {
+			color: #666;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="header">
+		<h1>勤怠管理システム</h1>
+		<div class="user-info">
+			<span th:text="${loginUser.name}">ユーザー名</span>さん
+			<a href="#" onclick="confirmLogout()" class="logout-link">ログアウト</a>
+		</div>
+	</div>
+
+	<div class="container">
+		<div class="nav-links">
+			<a href="/top">← トップページ</a>
+		</div>
+
+		<div class="search-container">
+			<div class="admin-badge">管理者限定</div>
+			<h2>ユーザー検索</h2>
+			<p>ユーザーIDで検索して、ユーザー情報を表示・編集できます。</p>
+
+			<form th:action="@{/user/search}" method="get" class="search-form">
+				<div class="form-group" style="margin-bottom: 0;">
+					<label for="searchUserId">ユーザーID：</label>
+					<input type="text" name="userId" id="searchUserId" placeholder="例：USER001" required>
+				</div>
+				<button type="submit" class="btn-primary">検索</button>
+			</form>
+		</div>
+
+		<!-- ユーザー情報表示（検索結果） -->
+		<div class="form-container" th:if="${targetUser != null}">
+			<h3>ユーザー情報</h3>
+
+			<div class="user-details">
+				<div class="detail-row">
+					<span class="detail-label">ユーザーID：</span>
+					<span class="detail-value" th:text="${targetUser.userId}">USER001</span>
+				</div>
+				<div class="detail-row">
+					<span class="detail-label">氏名：</span>
+					<span class="detail-value" th:text="${targetUser.name}">山田太郎</span>
+				</div>
+				<div class="detail-row">
+					<span class="detail-label">所属部門：</span>
+					<span class="detail-value" th:text="${targetUser.deptName}">開発部門</span>
+				</div>
+				<div class="detail-row">
+					<span class="detail-label">所属コード：</span>
+					<span class="detail-value" th:text="${targetUser.deptCode}">DEV</span>
+				</div>
+			</div>
+
+			<h4>ユーザー情報編集</h4>
+
+			<!-- メッセージ表示（ユーザー情報編集部分） -->
+			<div th:if="${successMessage != null and !successMessage.empty}" th:text="${successMessage}"
+				class="message success-message"></div>
+			<div th:if="${errorMessage != null and !errorMessage.empty}" th:text="${errorMessage}"
+				class="message error-message"></div>
+
+			<form th:action="@{/user/update}" th:object="${userForm}" method="post">
+				<div class="form-group">
+					<label for="userId">ユーザーID：</label>
+					<input type="text" th:field="*{userId}" id="userId" readonly style="background-color: #e9ecef;">
+				</div>
+
+				<div class="form-group">
+					<label for="pass">パスワード：</label>
+					<input type="password" th:field="*{pass}" id="pass" required>
+					<div th:if="${#fields.hasErrors('pass')}" th:errors="*{pass}"
+						style="color: red; font-size: 0.8rem;"></div>
+				</div>
+
+				<div class="form-group">
+					<label for="deptCode">所属コード：</label>
+					<select th:field="*{deptCode}" id="deptCode" required>
+						<option value="">選択してください</option>
+						<option value="SOUMU">SOUMU（総務部門）</option>
+						<option value="EIGYO">EIGYO（営業部門）</option>
+						<option value="DEV">DEV（開発部門）</option>
+					</select>
+					<div th:if="${#fields.hasErrors('deptCode')}" th:errors="*{deptCode}"
+						style="color: red; font-size: 0.8rem;"></div>
+				</div>
+
+				<div class="form-group">
+					<label for="deptName">所属名：</label>
+					<input type="text" th:field="*{deptName}" id="deptName" required>
+					<div th:if="${#fields.hasErrors('deptName')}" th:errors="*{deptName}"
+						style="color: red; font-size: 0.8rem;"></div>
+				</div>
+
+				<div class="form-group">
+					<label for="name">氏名：</label>
+					<input type="text" th:field="*{name}" id="name" required>
+					<div th:if="${#fields.hasErrors('name')}" th:errors="*{name}"
+						style="color: red; font-size: 0.8rem;"></div>
+				</div>
+
+				<div class="button-group">
+					<button type="submit" class="btn-warning">更新</button>
+					<form style="display: inline; flex: 1;" th:action="@{/user/delete}" method="post"
+						onsubmit="return confirmDelete()">
+						<input type="hidden" name="userId" th:value="${targetUser.userId}">
+						<button type="submit" class="btn-danger" style="width: 100%;">削除</button>
+					</form>
+				</div>
+			</form>
+		</div>
+
+		<!-- 新規ユーザー登録 -->
+		<div class="form-container">
+			<h3>新規ユーザー登録</h3>
+
+			<!-- メッセージ表示（新規ユーザー登録部分） -->
+			<div th:if="${successMessage != null and !successMessage.empty and targetUser == null}"
+				th:text="${successMessage}" class="message success-message"></div>
+			<div th:if="${errorMessage != null and !errorMessage.empty and targetUser == null}"
+				th:text="${errorMessage}" class="message error-message"></div>
+
+			<form th:action="@{/user/register}" th:object="${userForm}" method="post">
+				<div class="form-group">
+					<label for="newUserId">ユーザーID：</label>
+					<input type="text" th:field="*{userId}" id="newUserId" placeholder="例：USER001" required>
+					<div th:if="${#fields.hasErrors('userId') and targetUser == null}" th:errors="*{userId}"
+						style="color: red; font-size: 0.8rem;"></div>
+				</div>
+
+				<div class="form-group">
+					<label for="newPass">パスワード：</label>
+					<input type="password" th:field="*{pass}" id="newPass" required>
+					<div th:if="${#fields.hasErrors('pass') and targetUser == null}" th:errors="*{pass}"
+						style="color: red; font-size: 0.8rem;"></div>
+				</div>
+
+				<div class="form-group">
+					<label for="newDeptCode">所属コード：</label>
+					<select th:field="*{deptCode}" id="newDeptCode" required>
+						<option value="">選択してください</option>
+						<option value="SOUMU">SOUMU（総務部門）</option>
+						<option value="EIGYO">EIGYO（営業部門）</option>
+						<option value="DEV">DEV（開発部門）</option>
+					</select>
+					<div th:if="${#fields.hasErrors('deptCode') and targetUser == null}" th:errors="*{deptCode}"
+						style="color: red; font-size: 0.8rem;"></div>
+				</div>
+
+				<div class="form-group">
+					<label for="newDeptName">所属名：</label>
+					<input type="text" th:field="*{deptName}" id="newDeptName" placeholder="例：開発部門" required>
+					<div th:if="${#fields.hasErrors('deptName') and targetUser == null}" th:errors="*{deptName}"
+						style="color: red; font-size: 0.8rem;"></div>
+				</div>
+
+				<div class="form-group">
+					<label for="newName">氏名：</label>
+					<input type="text" th:field="*{name}" id="newName" placeholder="例：山田太郎" required>
+					<div th:if="${#fields.hasErrors('name') and targetUser == null}" th:errors="*{name}"
+						style="color: red; font-size: 0.8rem;"></div>
+				</div>
+
+				<div class="button-group">
+					<button type="submit" class="btn-primary">登録</button>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<script>
+		function confirmLogout() {
+			if (confirm('ログアウトしますか？')) {
+				window.location.href = '/logout';
+			}
+		}
+
+		function confirmDelete() {
+			return confirm('本当に削除しますか？');
+		}
+	</script>
+</body>
+
+</html>

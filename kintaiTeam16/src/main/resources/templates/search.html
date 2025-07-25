@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>勤怠管理システム - 勤務情報検索</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .header {
+            background-color: #007bff;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+        }
+        .user-info {
+            font-size: 0.9rem;
+        }
+        .logout-link {
+            color: white;
+            text-decoration: none;
+            margin-left: 1rem;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .search-container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .nav-links {
+            margin-bottom: 1rem;
+        }
+        .nav-links a {
+            color: #007bff;
+            text-decoration: none;
+            margin-right: 1rem;
+        }
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+        .search-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            align-items: end;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+        input, select {
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            padding: 0.75rem 1.5rem;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .results-container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #333;
+        }
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+        .work-type {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        .work-type-出勤 {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .work-type-振出 {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .work-type-振休 {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+        .work-type-年休 {
+            background-color: #e2e3e5;
+            color: #383d41;
+        }
+        .work-type-休日 {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .work-type-欠勤 {
+            background-color: #f5c6cb;
+            color: #721c24;
+        }
+        .no-data {
+            text-align: center;
+            color: #666;
+            padding: 2rem;
+        }
+        .time-display {
+            font-family: monospace;
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-warning {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        .btn:hover {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>勤怠管理システム</h1>
+        <div class="user-info">
+            <span th:text="${loginUser.name}">ユーザー名</span>さん
+            <a href="#" onclick="confirmLogout()" class="logout-link">ログアウト</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="nav-links">
+            <a href="/top">← トップページ</a>
+        </div>
+
+        <div class="search-container">
+            <h2>勤務情報検索</h2>
+            
+            <form th:action="@{/search}" th:object="${searchForm}" method="post" class="search-form">
+                <div class="form-group" th:if="${loginUser.admin}">
+                    <label for="userId">社員番号：</label>
+                    <select th:field="*{userId}" id="userId">
+                        <option value="">選択してください</option>
+                        <option th:each="user : ${users}" th:value="${user.userId}" th:text="${user.userId + ' - ' + user.name}"></option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="startDate">開始日：</label>
+                    <input type="date" th:field="*{startDate}" id="startDate">
+                </div>
+                
+                <div class="form-group">
+                    <label for="endDate">終了日：</label>
+                    <input type="date" th:field="*{endDate}" id="endDate">
+                </div>
+                
+                <div class="form-group">
+                    <button type="submit">検索</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="results-container" th:if="${kintaiList != null}">
+            <h3>検索結果</h3>
+            <p th:if="${targetUserId != null}">対象社員：<span th:text="${targetUserId}">USER001</span></p>
+            
+            <div th:if="${#lists.isEmpty(kintaiList)}" class="no-data">
+                <p>該当する勤務実績がありません。</p>
+            </div>
+
+            <table th:if="${!#lists.isEmpty(kintaiList)}">
+                <thead>
+                    <tr>
+                        <th>日付</th>
+                        <th>勤務形態</th>
+                        <th>始業時間</th>
+                        <th>終業時間</th>
+                        <th>休憩時間</th>
+                        <th>実労働時間</th>
+                        <th th:if="${!loginUser.admin}">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="kintai : ${kintaiList}">
+                        <td th:text="${#temporals.format(kintai.workDate, 'yyyy/MM/dd')}">2024/01/01</td>
+                        <td>
+                            <span class="work-type" th:classappend="'work-type-' + ${kintai.workType}" th:text="${kintai.workType}">出勤</span>
+                        </td>
+                        <td class="time-display" th:text="${kintai.startTime != null ? #temporals.format(kintai.startTime, 'HH:mm') : '-'}">09:00</td>
+                        <td class="time-display" th:text="${kintai.endTime != null ? #temporals.format(kintai.endTime, 'HH:mm') : '-'}">18:00</td>
+                        <td th:text="${kintai.breakTime != null ? kintai.breakTime + '分' : '-'}">60分</td>
+                        <td th:text="${kintai.actualWorkTime != null ? (kintai.actualWorkTime / 60) + '時間' + (kintai.actualWorkTime % 60) + '分' : '-'}">7時間0分</td>
+                        <td th:if="${!loginUser.admin}">
+                            <a th:href="@{/kintai/edit(date=${kintai.workDate})}" class="btn btn-warning">編集</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function confirmLogout() {
+            if (confirm('ログアウトしますか？')) {
+                window.location.href = '/logout';
+            }
+        }
+    </script>
+</body>
+</html>

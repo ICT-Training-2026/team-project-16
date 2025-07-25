@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>勤怠管理システム - 勤退情報表示</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .header {
+            background-color: #007bff;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+        }
+        .user-info {
+            font-size: 0.9rem;
+        }
+        .logout-link {
+            color: white;
+            text-decoration: none;
+            margin-left: 1rem;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .search-container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .nav-links {
+            margin-bottom: 1rem;
+        }
+        .nav-links a {
+            color: #007bff;
+            text-decoration: none;
+            margin-right: 1rem;
+        }
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+        .admin-badge {
+            background-color: #28a745;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+            display: inline-block;
+        }
+        .search-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            align-items: end;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+        input, select {
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            padding: 0.75rem 1.5rem;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .results-container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .export-section {
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-success:hover {
+            background-color: #218838;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #333;
+        }
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+        .no-data {
+            text-align: center;
+            color: #666;
+            padding: 2rem;
+        }
+        .time-display {
+            font-family: monospace;
+        }
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>勤怠管理システム</h1>
+        <div class="user-info">
+            <span th:text="${loginUser.name}">ユーザー名</span>さん
+            <a href="#" onclick="confirmLogout()" class="logout-link">ログアウト</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="nav-links">
+            <a href="/top">← トップページ</a>
+        </div>
+
+        <div class="search-container">
+            <div class="admin-badge">管理者限定</div>
+            <h2>勤退情報表示</h2>
+            <p>全社員の月間勤怠情報を表示します。</p>
+            
+            <form th:action="@{/report}" th:object="${searchForm}" method="post" class="search-form">
+                <div class="form-group">
+                    <label for="year">年：</label>
+                    <select th:field="*{year}" id="year">
+                        <option th:each="y : ${#numbers.sequence(2020, 2030)}" 
+                                th:value="${y}" 
+                                th:text="${y + '年'}"
+                                th:selected="${y == searchForm.year}"></option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="month">月：</label>
+                    <select th:field="*{month}" id="month">
+                        <option th:each="m : ${#numbers.sequence(1, 12)}" 
+                                th:value="${m}" 
+                                th:text="${m + '月'}"
+                                th:selected="${m == searchForm.month}"></option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <button type="submit">検索</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="results-container" th:if="${workInfoList != null}">
+            <h3>検索結果</h3>
+            <p>対象期間：<span th:text="${targetYear + '年' + targetMonth + '月'}">2024年1月</span></p>
+            
+            <div class="export-section">
+                <h4>データエクスポート</h4>
+                <p>給与計算用のデータをCSVファイルでダウンロードできます。</p>
+                <a th:href="@{/export(year=${targetYear}, month=${targetMonth})}" class="btn-success">CSVエクスポート</a>
+            </div>
+            
+            <div th:if="${#lists.isEmpty(workInfoList)}" class="no-data">
+                <p>該当するデータがありません。</p>
+            </div>
+
+            <div th:if="${!#lists.isEmpty(workInfoList)}">
+                <div class="summary-stats">
+                    <div class="stat-card">
+                        <div class="stat-number" th:text="${#lists.size(workInfoList)}">0</div>
+                        <div class="stat-label">対象社員数</div>
+                    </div>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>社員番号</th>
+                            <th>氏名</th>
+                            <th>所属部門</th>
+                            <th>出勤日数</th>
+                            <th>所定労働日数</th>
+                            <th>所定労働時間</th>
+                            <th>実労働時間</th>
+                            <th>残業時間</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="workInfo : ${workInfoList}">
+                            <td th:text="${workInfo.userId}">USER001</td>
+                            <td th:text="${workInfo.userName}">山田太郎</td>
+                            <td th:text="${workInfo.deptName}">開発部門</td>
+                            <td class="time-display" th:text="${workInfo.workDays + '日'}">22日</td>
+                            <td class="time-display" th:text="${workInfo.scheduledWorkDays + '日'}">22日</td>
+                            <td class="time-display" th:text="${workInfo.scheduledWorkHours + '時間'}">154.0時間</td>
+                            <td class="time-display" th:text="${workInfo.totalWorkHours + '時間'}">165.5時間</td>
+                            <td class="time-display" th:text="${workInfo.overtimeHours + '時間'}">11.5時間</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function confirmLogout() {
+            if (confirm('ログアウトしますか？')) {
+                window.location.href = '/logout';
+            }
+        }
+    </script>
+</body>
+</html>

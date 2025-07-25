@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>勤怠管理システム - 勤怠登録</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .header {
+            background-color: #007bff;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+        }
+        .user-info {
+            font-size: 0.9rem;
+        }
+        .logout-link {
+            color: white;
+            text-decoration: none;
+            margin-left: 1rem;
+        }
+        .container {
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .form-container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+        input, select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .time-input {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        .time-input input {
+            flex: 1;
+        }
+        .work-time-section {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+        }
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        button {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        .btn-secondary:hover {
+            background-color: #545b62;
+        }
+        .error-message {
+            color: red;
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 4px;
+        }
+        .warning {
+            color: #856404;
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 0.75rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+        .nav-links {
+            margin-bottom: 1rem;
+        }
+        .nav-links a {
+            color: #007bff;
+            text-decoration: none;
+            margin-right: 1rem;
+        }
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>勤怠管理システム</h1>
+        <div class="user-info">
+            <span th:text="${loginUser.name}">ユーザー名</span>さん
+            <a href="#" onclick="confirmLogout()" class="logout-link">ログアウト</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="nav-links">
+            <a href="/top">← トップページ</a>
+            <a href="/kintai/list">勤務時間編集</a>
+        </div>
+
+        <div class="form-container">
+            <h2 th:text="${isEdit} ? '勤怠編集' : '勤怠登録'">勤怠登録</h2>
+            
+            <!-- エラーメッセージ表示 -->
+            <div th:if="${errorMessage}" th:text="${errorMessage}" class="error-message"></div>
+            
+            <!-- 振休・年休の申請制限警告 -->
+            <div th:if="${!canRegisterShinkyuu}" class="warning">
+                振出を取得していないため、振休を申請できません。
+            </div>
+            <div th:if="${!canRegisterNenkyuu}" class="warning">
+                有給休暇日数が残っていないため、年休を申請できません。
+            </div>
+            
+            <form th:action="${isEdit} ? '/kintai/edit' : '/kintai'" th:object="${kintaiForm}" method="post">
+                <div class="form-group">
+                    <label for="workDate">日付：</label>
+                    <input type="date" th:field="*{workDate}" id="workDate" required>
+                    <div th:if="${#fields.hasErrors('workDate')}" th:errors="*{workDate}" style="color: red; font-size: 0.8rem;"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="workType">勤務形態：</label>
+                    <select th:field="*{workType}" id="workType" required onchange="toggleWorkTimeFields()">
+                        <option value="">選択してください</option>
+                        <option th:each="type : ${workTypes}" 
+                                th:value="${type}" 
+                                th:text="${type}"
+                                th:disabled="${(type == '振休' and !canRegisterShinkyuu) or (type == '年休' and !canRegisterNenkyuu)}">
+                        </option>
+                    </select>
+                    <div th:if="${#fields.hasErrors('workType')}" th:errors="*{workType}" style="color: red; font-size: 0.8rem;"></div>
+                </div>
+
+                <div class="work-time-section" id="workTimeSection" style="display: none;">
+                    <h4>勤務時間</h4>
+                    
+                    <div class="form-group">
+                        <label for="startTime">始業時間：</label>
+                        <input type="time" th:field="*{startTime}" id="startTime">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="endTime">終業時間：</label>
+                        <input type="time" th:field="*{endTime}" id="endTime">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="breakTime">休憩時間（分）：</label>
+                        <input type="number" th:field="*{breakTime}" id="breakTime" min="0" placeholder="例：60">
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="btn-primary" th:text="${isEdit} ? '更新' : '登録'">登録</button>
+                    <button type="button" class="btn-secondary" onclick="history.back()">キャンセル</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function toggleWorkTimeFields() {
+            const workType = document.getElementById('workType').value;
+            const workTimeSection = document.getElementById('workTimeSection');
+            
+            if (workType === '出勤' || workType === '振出') {
+                workTimeSection.style.display = 'block';
+                // 必須にする
+                document.getElementById('startTime').required = true;
+                document.getElementById('endTime').required = true;
+                document.getElementById('breakTime').required = true;
+            } else {
+                workTimeSection.style.display = 'none';
+                // 必須を解除
+                document.getElementById('startTime').required = false;
+                document.getElementById('endTime').required = false;
+                document.getElementById('breakTime').required = false;
+                // 値をクリア
+                document.getElementById('startTime').value = '';
+                document.getElementById('endTime').value = '';
+                document.getElementById('breakTime').value = '';
+            }
+        }
+
+        function confirmLogout() {
+            if (confirm('ログアウトしますか？')) {
+                window.location.href = '/logout';
+            }
+        }
+
+        // ページ読み込み時に勤務形態に応じて表示を切り替え
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleWorkTimeFields();
+        });
+    </script>
+</body>
+</html>
