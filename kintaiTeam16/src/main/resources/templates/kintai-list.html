@@ -144,15 +144,15 @@
         <h1>勤怠管理システム</h1>
         <div class="user-info">
             <span th:text="${loginUser.name}">ユーザー名</span>さん
-            <a href="#" onclick="confirmLogout()" class="logout-link">ログアウト</a>
+            <a th:href="@{#}" onclick="confirmLogout()" class="logout-link">ログアウト</a>
         </div>
     </div>
 
     <div class="container">
         <div class="nav-links">
-            <a href="/top">← トップページ</a>
-            <a href="/kintai">勤怠登録</a>
-            <a href="/search">勤務情報検索</a>
+            <a th:href="@{/top}">← トップページ</a>
+            <a th:href="@{/kintai}">勤怠登録</a>
+            <a th:href="@{/search}">勤務情報検索</a>
         </div>
 
         <div class="list-container">
@@ -160,7 +160,7 @@
             <p>先月の締めから今日までの勤務実績を表示しています。</p>
 
             <div class="action-buttons">
-                <a href="/kintai" class="btn btn-primary">新規登録</a>
+                <a th:href="@{/kintai}" class="btn btn-primary">新規登録</a>
             </div>
 
             <div th:if="${#lists.isEmpty(kintaiList)}" class="no-data">
