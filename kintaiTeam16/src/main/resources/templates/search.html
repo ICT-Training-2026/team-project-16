@@ -166,13 +166,13 @@
         <h1>勤怠管理システム</h1>
         <div class="user-info">
             <span th:text="${loginUser.name}">ユーザー名</span>さん
-            <a href="#" onclick="confirmLogout()" class="logout-link">ログアウト</a>
+            <a th:href="@{#}" onclick="confirmLogout()" class="logout-link">ログアウト</a>
         </div>
     </div>
 
     <div class="container">
         <div class="nav-links">
-            <a href="/top">← トップページ</a>
+            <a th:href="@{/top}">← トップページ</a>
         </div>
 
         <div class="search-container">
