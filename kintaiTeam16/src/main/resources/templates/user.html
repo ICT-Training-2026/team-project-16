@@ -139,6 +139,11 @@
 			opacity: 0.8;
 		}
 
+		button:disabled {
+			opacity: 0.6;
+			cursor: not-allowed;
+		}
+
 		.message {
 			padding: 0.75rem;
 			margin-bottom: 1rem;
@@ -255,22 +260,22 @@
 			<div th:if="${errorMessage != null and !errorMessage.empty}" th:text="${errorMessage}"
 				class="message error-message"></div>
 
-			<form th:action="@{/user/update}" th:object="${userForm}" method="post">
+			<form th:action="@{/user/update}" th:object="${userForm}" method="post" onsubmit="return preventDuplicateSubmit(this)">
 				<div class="form-group">
-					<label for="userId">ユーザーID：</label>
-					<input type="text" th:field="*{userId}" id="userId" readonly style="background-color: #e9ecef;">
+					<label for="editUserId">ユーザーID：</label>
+					<input type="text" th:field="*{userId}" id="editUserId" readonly style="background-color: #e9ecef;">
 				</div>
 
 				<div class="form-group">
-					<label for="pass">パスワード：</label>
-					<input type="password" th:field="*{pass}" id="pass" required>
+					<label for="editPass">パスワード：</label>
+					<input type="password" th:field="*{pass}" id="editPass" required>
 					<div th:if="${#fields.hasErrors('pass')}" th:errors="*{pass}"
 						style="color: red; font-size: 0.8rem;"></div>
 				</div>
 
 				<div class="form-group">
-					<label for="deptCode">所属コード：</label>
-					<select th:field="*{deptCode}" id="deptCode" required>
+					<label for="editDeptCode">所属コード：</label>
+					<select th:field="*{deptCode}" id="editDeptCode" required>
 						<option value="">選択してください</option>
 						<option value="SOUMU">SOUMU（総務部門）</option>
 						<option value="EIGYO">EIGYO（営業部門）</option>
@@ -281,26 +286,22 @@
 				</div>
 
 				<div class="form-group">
-					<label for="deptName">所属名：</label>
-					<input type="text" th:field="*{deptName}" id="deptName" required>
+					<label for="editDeptName">所属名：</label>
+					<input type="text" th:field="*{deptName}" id="editDeptName" required>
 					<div th:if="${#fields.hasErrors('deptName')}" th:errors="*{deptName}"
 						style="color: red; font-size: 0.8rem;"></div>
 				</div>
 
 				<div class="form-group">
-					<label for="name">氏名：</label>
-					<input type="text" th:field="*{name}" id="name" required>
+					<label for="editName">氏名：</label>
+					<input type="text" th:field="*{name}" id="editName" required>
 					<div th:if="${#fields.hasErrors('name')}" th:errors="*{name}"
 						style="color: red; font-size: 0.8rem;"></div>
 				</div>
 
 				<div class="button-group">
 					<button type="submit" class="btn-warning">更新</button>
-					<form style="display: inline; flex: 1;" th:action="@{/user/delete}" method="post"
-						onsubmit="return confirmDelete()">
-						<input type="hidden" name="userId" th:value="${targetUser.userId}">
-						<button type="submit" class="btn-danger" style="width: 100%;">削除</button>
-					</form>
+					<button type="button" class="btn-danger" onclick="deleteUser()">削除</button>
 				</div>
 			</form>
 		</div>
@@ -315,10 +316,10 @@
 			<div th:if="${errorMessage != null and !errorMessage.empty and targetUser == null}"
 				th:text="${errorMessage}" class="message error-message"></div>
 
-			<form th:action="@{/user/register}" th:object="${userForm}" method="post">
+			<form th:action="@{/user/register}" th:object="${newUserForm}" method="post" onsubmit="return preventDuplicateSubmit(this)">
 				<div class="form-group">
 					<label for="newUserId">ユーザーID：</label>
-					<input type="text" th:field="*{userId}" id="newUserId" placeholder="例：SOUMU" required>
+					<input type="text" th:field="*{userId}" id="newUserId" placeholder="例：USER002" required>
 					<div th:if="${#fields.hasErrors('userId') and targetUser == null}" th:errors="*{userId}"
 						style="color: red; font-size: 0.8rem;"></div>
 				</div>
@@ -364,15 +365,53 @@
 	</div>
 
 	<script>
+		// 重複送信防止
+		function preventDuplicateSubmit(form) {
+			const submitBtn = form.querySelector('button[type="submit"]');
+			if (submitBtn.disabled) {
+				return false;
+			}
+			submitBtn.disabled = true;
+			submitBtn.textContent = '処理中...';
+			return true;
+		}
+
+		// 削除処理
+		function deleteUser() {
+			if (confirm('本当に削除しますか？')) {
+				const userId = document.getElementById('editUserId').value;
+				
+				const form = document.createElement('form');
+				form.method = 'POST';
+				form.action = '/user/delete';
+				
+				const input = document.createElement('input');
+				input.type = 'hidden';
+				input.name = 'userId';
+				input.value = userId;
+				
+				form.appendChild(input);
+				document.body.appendChild(form);
+				form.submit();
+			}
+		}
+
 		function confirmLogout() {
 			if (confirm('ログアウトしますか？')) {
 				window.location.href = '/logout';
 			}
 		}
 
-		function confirmDelete() {
-			return confirm('本当に削除しますか？');
-		}
+		// ページ読み込み時にボタンの状態をリセット
+		window.addEventListener('load', function() {
+			const buttons = document.querySelectorAll('button[type="submit"]');
+			buttons.forEach(btn => {
+				btn.disabled = false;
+				if (btn.textContent === '処理中...') {
+					btn.textContent = btn.closest('form').id === 'updateForm' ? '更新' : '登録';
+				}
+			});
+		});
 	</script>
 </body>
 

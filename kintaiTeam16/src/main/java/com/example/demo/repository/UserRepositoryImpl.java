@@ -75,7 +75,6 @@ public class UserRepositoryImpl implements UserRepository {
             user.getDeptName(),
             user.getName(),
             user.getUserId());
-        
         return result == 1;
     }
 
