@@ -109,7 +109,7 @@ public class ReportController {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
         headers.setContentDispositionFormData("attachment", 
-            String.format("勤怠情報_%d年%d月.csv", year, month));
+            String.format("%d_%d.csv", year, month));
         
         return ResponseEntity.ok()
                 .headers(headers)
